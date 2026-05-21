@@ -1,0 +1,146 @@
+services:
+
+  # KALI ATTACKER
+  kali:
+    build: ./kali
+    container_name: kali_attacker
+
+    tty: true
+    stdin_open: true
+    privileged: true
+
+    networks:
+      cyberlab:
+        ipv4_address: 192.168.100.10
+
+    volumes:
+      - ./payloads:/root/payloads
+      - ./tools:/root/tools
+      - ./evidence:/root/evidence
+
+    restart: unless-stopped
+
+  # WORDPRESS CMS
+  wordpress:
+    build: ./wordpress
+    container_name: wordpress_cms
+
+    depends_on:
+      - mysql
+
+    environment:
+      WORDPRESS_DB_HOST: wordpress_mysql
+      WORDPRESS_DB_USER: wpuser
+      WORDPRESS_DB_PASSWORD: wppass
+      WORDPRESS_DB_NAME: wordpress
+
+    ports:
+      - "8080:80"
+
+    networks:
+      cyberlab:
+        ipv4_address: 192.168.100.20
+
+    volumes:
+      - wordpress_data:/var/www/html
+      - ./logs/apache:/var/log/apache2
+
+    restart: unless-stopped
+
+  # MYSQL DATABASE
+  mysql:
+    image: mysql:5.7
+    container_name: wordpress_mysql
+
+    restart: always
+
+    environment:
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wpuser
+      MYSQL_PASSWORD: wppass
+      MYSQL_ROOT_PASSWORD: rootpass
+
+    networks:
+      cyberlab:
+        ipv4_address: 192.168.100.21
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  # NGINX REVERSE PROXY
+  nginx:
+    build: ./nginx
+    container_name: nginx_proxy
+
+    depends_on:
+      - wordpress
+
+    ports:
+      - "80:80"
+
+    networks:
+      cyberlab:
+        ipv4_address: 192.168.100.50
+
+    volumes:
+      - ./logs/nginx:/var/log/nginx
+
+    restart: unless-stopped
+
+  # MONITOR SERVER
+  monitor:
+    build: ./monitor
+    container_name: monitor_tcpdump
+
+    privileged: true
+    tty: true
+    stdin_open: true
+
+    networks:
+      cyberlab:
+        ipv4_address: 192.168.100.40
+
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+
+    volumes:
+      - ./pcaps:/pcaps
+      - ./logs:/logs
+      - ./logs/zeek:/opt/zeek/logs
+      - ./monitoring_scripts:/home/monitor/scripts
+
+    restart: unless-stopped
+
+  # CLIENT MACHINE
+  client:
+    build: ./client
+    container_name: client_user
+
+    tty: true
+    stdin_open: true
+
+    networks:
+      cyberlab:
+        ipv4_address: 192.168.100.30
+
+    volumes:
+      - ./client_scripts:/home/client/scripts
+
+    restart: unless-stopped
+
+# NETWORK
+networks:
+  cyberlab:
+    driver: bridge
+
+    ipam:
+      config:
+        - subnet: 192.168.100.0/24
+
+# ==========================================
+# PERSISTENT STORAGE
+# ==========================================
+volumes:
+  wordpress_data:
+  mysql_data:

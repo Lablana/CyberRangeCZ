@@ -1,0 +1,26 @@
+# Logs
+logs/
+*.log
+
+# Packet captures
+pcaps/
+*.pcap
+
+# Evidence
+evidence/
+
+# Zeek runtime
+current
+
+# Docker
+*.tar
+
+# WordPress runtime
+wordpress_data/
+
+# MySQL runtime
+mysql_data/
+
+# Temporary files
+*.swp
+*.tmp
