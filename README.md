@@ -1,122 +1,392 @@
 # CyberRangeCZ Lightweight Web Compromise Lab
 
-Docker-based lightweight cyber range environment for:
+CyberRangeCZ нь Docker-т суурилсан lightweight cyber range (хөнгөн жинтэй кибер лаборатори) бөгөөд wordPress CMS, MySQL database (өгөгдлийн сан), NGINX reverse proxy, Zeek network security monitoring зэрэг бүрэлдэхүүнүүдийг ашиглан Web compromise, Reconnaissance, SQL injection, packet analysis, log analysis зэрэг кибер аюулгүй байдлын туршилтуудыг хийх боломжтой орчин юм.
 
-- WordPress security testing
-- SQL Injection labs
-- Reconnaissance
-- Zeek monitoring
-- Suricata IDS/IPS
-- Packet analysis
+Энэхүү лаборатори нь Ubuntu virtual machine дээр ажиллах боломжтой бөгөөд Docker container architecture-ийг ашигласнаар lightweight resource usage (бага нөөц ашиглалт), дахин ашиглах боломжтой, тусгаарлагдсан орчин зэрэг давуу талуудтай.
 
-## Architecture
+---
 
-Kali Linux
-↓
+# Architecture
+
+```text
+Kali Linux Attacker
+        ↓
 NGINX Reverse Proxy
-↓
+        ↓
 WordPress CMS
-↓
+        ↓
 MySQL Database
-↓
-Zeek monitoring
+        ↓
+Monitor Container
+ ├── Zeek
+ ├── tcpdump
+```
 
-## Quick Start
+---
 
-Лабораторийн орчин бэлдэх зааварчилгаа
-Урьдчилсан шаардлага
-Ubuntu 22.04
-Docker engine 
-Docker compose plugin
-Git
-Docker суулгах ба тохируулах
-Алхам 1: Системийг шинэчлэх
-Docker суулгахаас өмнө Ubuntu системийг бүрэн шинэчлэнэ. Энэ нь хамгийн сүүлийн хувилбарын пакетуудыг суулгахад шаардлагатай: 
-sudo apt update & sudo  upgrade -y
-Алхам 2: Docker суулгах
-Ubuntu-ийн албан ёсны репозиторийгоос Docker-ийг суулгана:  
-sudo apt install -y docker.io 
-Docker үйлчилгээг системтэй цуг автоматаар эхлэх тохиргоо хийнэ: 
-sudo systemctl enable docker
-sudo systemctl start docker
-Docker амжилттай ажиллаж байгаа эсэхийг шалгана: 
-sudo systemctl status docker
-Active: active (running) гэж харагдвал Docker амжилттай суусан. 
-Алхам 3: Docker Compose Plugin суулгах 
-Docker Compose нь олон контейнерийг нэг docker-compose.yml файлаар хамтад нь удирдах боломжийг олгодог хэрэгсэл юм. Манай дадлагад зургаан контейнерийг нэгэн зэрэг ажиллуулахад ашиглана: 
-sudo apt install -y docker-compose-plugin
-Суулгасны дараа хувилбарыг шалгана: 
-docker compose version
-Алхам 4: Хэрэглэгчийн Docker бүлэгт нэмэх 
-Анхдагч байдлаар Docker командуудыг ажиллуулахад root эрх буюу sudo шаардагддаг.   Хэрэглэгчийг docker бүлэгт нэмснээр sudo бичихгүйгээр docker командуудыг ашиглах боломжтой болно: 
-sudo usermod -aG docker $USER 
-Энэ өөрчлөлт хүчин төгөлдөр болохын тулд заавал logout хийж дахин нэвтэрнэ: 
-	logout
-	Дахин нэвтэрсний дараа docker бүлэгт орсон эсэхийг шалгана: 
-		Groups
-	sudo-гүйгээр docker ажилладаг эсэхийг туршина: 
-		Docker ps
-Алхам 5: Git суулгах 
-Git нь хувилбар хяналтын систем бөгөөд дадлагын орчны бүх тохиргооны файлуудыг GitHub-с татахад ашиглана: 
-sudo apt install git -y
-Git амжилттай суусан эсэхийг шалгана: 
-	Git –version
-Алхам 6: Ажлын гүйцэтгэх хавтас үүсгэнэ
-Home directory дотор дадлагын орчны файлуудыг хадгалах тусгай хавтас үүсгэнэ: 
-mkdir -p ~/cyber-range
-Алхам 7: Репозиторийг clone хийх 
-GitHub-с дадлагын орчны бүх тохиргооны файлуудыг татна. USERNAME-ийг өөрийн GitHub хэрэглэгчийн нэрээр солино: 
-git clone https://github.com/Lablana/CyberRangeCZ 
-Татаж авсан файлуудыг харна:
-cd ~/cyber-range
-Алхам 8: Docker image-уудыг татах
-Docker Image нь контейнерийн загвар юм. Нэг image-аас олон контейнер үүсгэж болно. Дараах дөрвөн image-ийг татна: 
-sudo docker pull kalilinux/kali-rolling:latest
-sudo docker pull vulnerables/web-dvwa:latest
-sudo docker pull mysql:5.7
-sudo docker pull ubuntu:22.04 
-Татсан image-үүдийг харна:
-	docker image
-Алхам 9: Docker compose build хийх
-docker-compose.yml файлын тохиргооны дагуу контейнерүүдийг build хийнэ. Энэ алхамд тусгай тохиргоо, суулгалтуудыг container дотор хийнэ: 
-cd ~/cyber-range
-sudo docker compose build 
-Build процесс интернэтийн хурдаас хамаарч 5–15 минут үргэлжилж болно. 
-Алхам 10: Containar-уудыг асаах
-Бүх контейнерийг арын горимд нэгэн зэрэг асаана: 
-sudo docker compose up -d 
+# Components
 
+## Kali Linux
 
-Алхам 11: Container Status Шалгах 
-Бүх контейнер зөв ажиллаж байгаа эсэхийг шалгана: 
-sudo docker compose ps 
-Сүлжээний тохиргоог шалгана — IP хаягууд зөв тогтоогдсон эсэх: 
+Kali Linux container нь penetration testing (нэвтрэлтийн тест)-ийн орчин болж ажиллана.
 
-IP хаягууд 
-Kali-192.168.100.10
-NGINX Proxy-192.168.100.50
-WordPress-192.168.100.20
-MySQL Database-192.168.100.21
-Client User-192.168.100.30
-Monitor-192.168.100.40
+Ашиглагдсан tools:
 
+- Nmap
+- WPScan
+- SQLMap
+- Hydra
+- Netcat
+- tcpdump
 
-## Components
+---
 
-- Kali Linux
-- WordPress
-- MySQL
-- NGINX
+## WordPress CMS
+
+WordPress нь халдлагын үндсэн target system (бай систем) болно.
+
+Энэхүү CMS орчин дээр:
+
+- CMS Enumeration
+- Authentication Attack
+- SQL Injection
+- Web Compromise
+- Plugin Enumeration
+
+зэргийг турших боломжтой.
+
+---
+
+## MySQL Database
+
+MySQL нь WordPress backend database (арын өгөгдлийн сан)-ийн үүргийг гүйцэтгэнэ.
+
+MySQL дотор:
+
+- User accounts
+- Password hashes
+- CMS content
+- Authentication data
+
+хадгалагдана.
+
+---
+
+## NGINX Reverse Proxy
+
+NGINX нь reverse proxy (урвуу proxy)-ийн үүрэгтэй.
+
+```text
+Client → NGINX → WordPress
+```
+
+структур үүсгэснээр:
+
+- HTTP traffic forwarding
+- Access logging
+- Request inspection
+- Reverse proxy analysis
+
+хийх боломж бүрдэнэ.
+
+---
+
+## Monitor Container
+
+Monitor container нь monitoring stack (хяналтын орчин)-ийг агуулна.
+
+Үүнд:
+
 - Zeek
 - tcpdump
-- tshark
-## Educational Purpose
 
-This laboratory environment is intended strictly for:
+суулгасан.
+
+Энэхүү container нь:
+
+- Packet capture
+- IDS/IPS monitoring
+- HTTP traffic analysis
+- Connection logging
+
+хийдэг.
+
+---
+
+# Quick Start
+
+# Лабораторийн орчин бэлтгэх заавар
+
+## Алхам 1 — Ubuntu системийг шинэчлэх
+
+Docker суулгахаас өмнө Ubuntu системийг бүрэн шинэчлэх шаардлагатай.
+
+```bash
+sudo apt update && sudo apt upgrade -y
+```
+
+---
+
+## Алхам 2 — Docker engine суулгах
+
+Docker engine нь контейнерүүдийг ажиллуулах үндсэн орчин болно.
+
+```bash
+sudo apt install -y docker.io
+```
+
+Docker service-ийг систем асах үед автоматаар эхлэх тохиргоо хийнэ.
+
+```bash
+sudo systemctl enable docker
+sudo systemctl start docker
+```
+
+Docker зөв ажиллаж байгаа эсэхийг шалгана.
+
+```bash
+sudo systemctl status docker
+```
+
+Хэрэв:
+
+```text
+Active: active (running)
+```
+
+гэж харагдвал Docker амжилттай суусан гэсэн үг.
+
+---
+
+## Алхам 3 — Docker compose plugin суулгах
+
+Docker compose нь олон container-ийг нэг docker-compose.yml файлаар удирдах боломж олгодог.
+
+```bash
+sudo apt install -y docker-compose-plugin
+```
+
+Суулгасны дараа version шалгана.
+
+```bash
+docker compose version
+```
+
+---
+
+## Алхам 4 — User-ийг Docker group-д нэмэх
+
+Docker command-уудыг sudo-гүй ашиглахын тулд хэрэглэгчийг docker group-д нэмнэ.
+
+```bash
+sudo usermod -aG docker $USER
+```
+
+Дараа нь logout/login хийнэ.
+
+```bash
+logout
+```
+
+Дахин нэвтэрсний дараа docker зөв ажиллаж байгаа эсэхийг шалгана.
+
+```bash
+docker ps
+```
+
+---
+
+## Алхам 5 — Git суулгах
+
+Git нь GitHub repository clone хийхэд ашиглагдана.
+
+```bash
+sudo apt install git -y
+```
+
+Version шалгана.
+
+```bash
+git --version
+```
+
+---
+
+## Алхам 6 — Ажлын хавтас үүсгэх
+
+CyberRangeCZ лабораторийн файлуудыг хадгалах хавтас үүсгэнэ.
+
+```bash
+mkdir -p ~/cyber-range
+cd ~/cyber-range
+```
+
+---
+
+## Алхам 7 — GitHub Repository clone хийх
+
+CyberRangeCZ repository-г GitHub-с татаж авна.
+
+```bash
+git clone https://github.com/Lablana/CyberRangeCZ
+```
+
+Repository руу орно.
+
+```bash
+cd CyberRangeCZ
+```
+
+---
+
+## Алхам 8 — Docker Image-үүдийг татах
+
+Docker image-үүдийг урьдчилан татна.
+
+```bash
+sudo docker pull kalilinux/kali-rolling:latest
+sudo docker pull mysql:5.7
+sudo docker pull ubuntu:22.04
+sudo docker pull nginx:latest
+sudo docker pull wordpress:latest
+```
+
+Татсан image-үүдийг шалгана.
+
+```bash
+docker images
+```
+
+---
+
+## Алхам 9 — Docker Image build хийх
+
+docker-compose.yml файл дээр үндэслэн бүх container-ийг build хийнэ.
+
+```bash
+sudo docker compose build --no-cache
+```
+
+Энэ процесс internet speed болон hardware performance-оос хамаарч хэдэн минут үргэлжилж болно.
+
+---
+
+## Алхам 10 — Container-уудыг асаах
+
+Бүх container-ийг background mode-д эхлүүлнэ.
+
+```bash
+sudo docker compose up -d --remove-orphans
+```
+
+---
+
+## Алхам 11 — Container Status шалгах
+
+Container-ууд зөв ажиллаж байгаа эсэхийг шалгана.
+
+```bash
+sudo docker compose ps
+```
+
+Ажиллаж буй container-ууд:
+
+- kali_attacker
+- wordpress_cms
+- wordpress_mysql
+- nginx_proxy
+- monitor_tcpdump
+- client_user
+
+---
+
+## Алхам 12 — Docker Network шалгах
+
+Docker network болон IP address-уудыг шалгана.
+
+```bash
+sudo docker network ls
+```
+
+Дараа нь:
+
+```bash
+sudo docker network inspect cyber-range_cyberlab
+```
+
+---
+
+# Лабораторийн IP Address
+
+| Service | IP Address |
+|---|---|
+| Kali Linux | 192.168.100.10 |
+| WordPress CMS | 192.168.100.20 |
+| MySQL Database | 192.168.100.21 |
+| Client User | 192.168.100.30 |
+| Monitor Container | 192.168.100.40 |
+| NGINX Reverse Proxy | 192.168.100.50 |
+
+---
+
+# WordPress Setup
+
+Browser дээр:
+
+```text
+http://192.168.100.50
+```
+
+хаягаар орж WordPress installer ажиллуулна.
+
+Жишээ administrator account:
+
+| Field | Value |
+|---|---|
+| Username | adminn |
+| Password | admin123 |
+| Email | adminn@lab.local |
+
+---
+
+# Kali Container руу нэвтрэх
+
+Kali Linux attacker container руу дараах command-аар орно.
+
+```bash
+sudo docker exec -it kali_attacker bash
+```
+
+---
+
+# Monitor Container руу нэвтрэх
+
+Zeek болон monitoring logs шалгахдаа:
+
+```bash
+sudo docker exec -it monitor_tcpdump bash
+```
+
+---
+
+# Educational Purpose
+
+Энэхүү лаборатори нь зөвхөн:
 
 - Cybersecurity education
 - Penetration testing practice
-- Network monitoring research
-- IDS/IPS analysis
+- IDS/IPS monitoring
+- Network traffic analysis
+- Threat hunting research
 
-Use only in isolated lab environments.
+зорилгоор ашиглагдана.
+
+Зөвхөн isolated laboratory environment (тусгаарлагдсан лабораторийн орчин)-д ашиглах ёстой.
+
+---
+
+# Disclaimer
+
+This project is intended strictly for educational and research purposes. Unauthorized use against systems without explicit permission is illegal and unethical.
+
+Use responsibly.
